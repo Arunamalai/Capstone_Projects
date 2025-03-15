@@ -56,10 +56,7 @@ category_filter = st.sidebar.selectbox(
 
 # Adjust the SQL query based on the filter
 if category_filter == 'Top 10 highest revenue generating products':
-    query = """SELECT subcategory, SUM(Sale_Price) 
-    FROM retail_order2 
-    GROUP BY subcategory 
-    ORDER BY SUM(Sale_Price) DESC LIMIT 10"""
+    query = """SELECT subcategory, Format(SUM(Sale_Price * quantity),'N2') FROM retail_order2 GROUP BY subcategory ORDER BY SUM(Sale_Price * quantity) DESC LIMIT 10"""
 elif category_filter == 'Top 5 cities with the highest profit margins':
     query = """SELECT City, (SUM(Profit)/SUM(Sale_Price)*100) AS Profit_Margin_Percentage
 FROM (
