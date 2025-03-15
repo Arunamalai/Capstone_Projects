@@ -92,7 +92,7 @@ elif category_filter == 'Average discount percentage per region':
 elif category_filter == 'Product category with the highest total profit':
    query ="SELECT subcategory, SUM(Profit) FROM retail_order2 GROUP BY subcategory ORDER BY SUM(Profit) DESC LIMIT 1"
 elif category_filter == 'Total revenue generated per year':
-   query ="SELECT EXTRACT(Year from order_date) AS Year, FORMAT(SUM(Sale_Price),'N2') AS TotalRevenue FROM (SELECT ro1.order_date, ro2.Sale_Price FROM retail_order1 ro1 LEFT JOIN retail_order2 ro2 on ro1.order_id=ro2.order_id) As subquery GROUP BY Year ORDER BY Year"
+   query ="SELECT EXTRACT(Year from order_date) AS Year, FORMAT(SUM(Sale_Price*Quantity),'N2') AS TotalRevenue FROM (SELECT ro1.order_date, ro2.Sale_Price, ro2.Quantity FROM retail_order1 ro1 LEFT JOIN retail_order2 ro2 on ro1.order_id=ro2.order_id) As subquery GROUP BY Year ORDER BY Year"
 
 elif category_filter == 'Top 3 product category with least profit':
     query = """SELECT Subcategory, SUM(Profit) FROM retail_order2 GROUP BY Subcategory ORDER BY SUM(Profit) ASC LIMIT 3"""
