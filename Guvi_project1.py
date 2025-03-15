@@ -234,7 +234,7 @@ try:
     
     # Display a bar chart of Sale Price by Subcategory
     if category_filter == 'Top 10 highest revenue generating products':
-        st.bar_chart(df.set_index('subcategory')['Total_Sale_Price']) 
+        st.bar_chart(df.set_index('subcategory')['Format(SUM(Sale_Price * quantity),'N2')']) 
     elif category_filter == 'Top 5 cities with the highest profit margins':
      st.area_chart(df.set_index('City')['Profit_Margin_Percentage'])
     elif category_filter == 'Total discount for each category':
