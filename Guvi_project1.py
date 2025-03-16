@@ -7,7 +7,7 @@ import plotly.express as px
 
 
 st.title("GUVI PROJECT-1")
-col1, col2 = st.columns([3, 3])  # Adjust the column width ratio as needed
+col1, col2 = st.columns([3, 3])
 
 # Place the image in the second column (top-right)
 with col2:
@@ -56,7 +56,7 @@ category_filter = st.sidebar.selectbox(
 
 # Adjust the SQL query based on the filter
 if category_filter == 'Top 10 highest revenue generating products':
-    query = """SELECT subcategory, Format(SUM(Sale_Price * quantity),'N2') FROM retail_order2 GROUP BY subcategory ORDER BY SUM(Sale_Price * quantity) DESC LIMIT 10"""
+    query = """SELECT product_id,SUM(Sale_Price*Quantity) As Total_Sales FROM retail_order2 GROUP BY product_id ORDER BY Total_Sales DESC LIMIT 10"""
 elif category_filter == 'Top 5 cities with the highest profit margins':
     query = """SELECT City, (SUM(Profit)/SUM(Sale_Price)*100) AS Profit_Margin_Percentage
 FROM (
@@ -81,18 +81,17 @@ elif category_filter == 'Region with the highest average sale price':
      INNER JOIN retail_order2 as ro2 on ro1.order_id=ro2.order_id) AS subquery
      GROUP BY Region ORDER BY AVG(Sale_Price) DESC"""
 elif category_filter == 'Total profit per category':
-   query ="SELECT category, SUM(Profit) FROM retail_order2 GROUP BY category"
+   query ="SELECT category, SUM(Profit*Quantity) FROM retail_order2 GROUP BY category"
 elif category_filter == 'Top 3 segments with the highest quantity of orders':
    query ="SELECT segment,SUM(Quantity) FROM (SELECT ro1.Segment,ro2.Quantity FROM retail_order1 ro1 LEFT JOIN retail_order2 ro2 on ro1.order_ID=ro2.order_id) AS subquery GROUP BY Segment ORDER BY SUM(Quantity) DESC LIMIT 3"
 elif category_filter == 'Average discount percentage per region':
    query ="SELECT Region,AVG(discount_percent) FROM (SELECT ro1.Region,ro2.discount_percent from retail_order1 ro1 LEFT JOIN Retail_order2 ro2 on ro1.order_id=ro2.order_id) As Subquery GROUP BY Region"
 elif category_filter == 'Product category with the highest total profit':
-   query ="SELECT subcategory, SUM(Profit) FROM retail_order2 GROUP BY subcategory ORDER BY SUM(Profit) DESC LIMIT 1"
+   query ="SELECT subcategory, SUM(Profit*Quantity) FROM retail_order2 GROUP BY subcategory ORDER BY SUM(Profit*Quantity) DESC LIMIT 1"
 elif category_filter == 'Total revenue generated per year':
    query ="SELECT EXTRACT(Year from order_date) AS Year, FORMAT(SUM(Sale_Price*Quantity),'N2') AS TotalRevenue FROM (SELECT ro1.order_date, ro2.Sale_Price, ro2.Quantity FROM retail_order1 ro1 LEFT JOIN retail_order2 ro2 on ro1.order_id=ro2.order_id) As subquery GROUP BY Year ORDER BY Year"
-
 elif category_filter == 'Top 3 product category with least profit':
-    query = """SELECT Subcategory, SUM(Profit) FROM retail_order2 GROUP BY Subcategory ORDER BY SUM(Profit) ASC LIMIT 3"""
+    query = """SELECT Subcategory, SUM(Profit *Quantity) FROM retail_order2 GROUP BY Subcategory ORDER BY SUM(Profit *Quantity) ASC LIMIT 3"""
 elif category_filter == 'Product category with its income statement(profit or loss)':
     query="""SELECT 
         Subcategory,
@@ -181,7 +180,7 @@ elif category_filter =='Calculate Total profit in year2023':
    query="""SELECT 
     ro1.country, 
     EXTRACT(YEAR FROM ro1.order_date) AS Year,
-    SUM(ro2.Profit) AS Total_Profit
+    SUM(ro2.Profit*ro2.Quantity) AS Total_Profit
 FROM 
     retail_order1 ro1
 LEFT JOIN 
@@ -192,8 +191,6 @@ WHERE
     EXTRACT(YEAR FROM ro1.order_date) = 2023
 GROUP BY 
     ro1.country, EXTRACT(YEAR FROM ro1.order_date)
-ORDER BY 
-    Total_Profit DESC;
 """
 else:
     query = "SELECT 'No query available for this selection.' AS message"  # Default query if no valid option
@@ -234,7 +231,7 @@ try:
     
     # Display a bar chart of Sale Price by Subcategory
     if category_filter == 'Top 10 highest revenue generating products':
-        st.bar_chart(df.set_index('subcategory')['Format(SUM(Sale_Price * quantity),'N2')']) 
+        st.bar_chart(df.set_index('product_id')['Total_Sales']) 
     elif category_filter == 'Top 5 cities with the highest profit margins':
      st.area_chart(df.set_index('City')['Profit_Margin_Percentage'])
     elif category_filter == 'Total discount for each category':
@@ -244,17 +241,17 @@ try:
     elif category_filter == 'Region with the highest average sale price':
        st.bar_chart(df.set_index('Region')['AVG(Sale_Price)'])
     elif category_filter == 'Total profit per category':
-       st.bar_chart(df.set_index('category')['SUM(Profit)'])
+       st.bar_chart(df.set_index('category')['SUM(Profit*Quantity)'])
     elif category_filter == 'Top 3 segments with the highest quantity of orders':
        st.bar_chart(df.set_index('segment')['SUM(Quantity)'])
     elif category_filter == 'Average discount percentage per region':
        st.bar_chart(df.set_index('Region')['AVG(discount_percent)'])
     elif category_filter == 'Product category with the highest total profit':
-       st.bar_chart(df.set_index('subcategory')['SUM(Profit)'])
+       st.bar_chart(df.set_index('subcategory')['SUM(Profit*Quantity)'])
     elif category_filter == 'Total revenue generated per year':
        st.bar_chart(df.set_index('Year')['TotalRevenue'])
     elif category_filter == 'Top 3 product category with least profit':
-     st.bar_chart(df.set_index('Subcategory')['SUM(Profit)']) 
+     st.bar_chart(df.set_index('Subcategory')['SUM(Profit *Quantity)']) 
     elif category_filter == 'Count of products having loss':
      st.bar_chart(df.set_index('Subcategory')['COUNT(*)'])
     elif category_filter == 'Rank products by its revenue':
@@ -269,16 +266,3 @@ try:
 
 except Exception as e:
     st.error(f"Error executing query: {e}")
-
-   
-
-    
-
-    
-    
-
-
-
-
-
-
