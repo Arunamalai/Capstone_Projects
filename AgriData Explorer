@@ -265,3 +265,522 @@ mycursor.execute("""CREATE TABLE data2 (
     `PIGEONPEA YIELD (KG PER HA)` FLOAT)"""
 )
 
+import pandas as pd
+import mysql.connector
+
+def insert_dataframe_into_sql(df, connection, table_name):
+    """
+    Inserts a Pandas DataFrame into an SQL table.
+
+    Args:
+        df: The Pandas DataFrame to insert.
+        connection: An active MySQLdb connection object.
+        table_name: The name of the table to insert into.
+    """
+    mycursor = connection.cursor()
+
+    # Efficiently insert data in chunks
+    chunk_size = 1000  # Adjust chunk size based on your database and network
+    for i in range(0, len(df), chunk_size):
+        chunk = df[i:i + chunk_size]
+        values = []
+        for index, row in chunk.iterrows():
+            # Replace NaN with None for SQL compatibility
+            row = row.where(pd.notna(row), None)  
+            values.append(tuple(row))
+
+        # Escape column names with backticks to handle special characters like spaces and parentheses
+        columns = ', '.join([f"`{col}`" for col in df.columns])  # Add backticks around column names
+
+        # Create placeholders for the SQL query
+        placeholders = ', '.join(['%s'] * len(df.columns))
+        
+        sql = f"INSERT INTO `{table_name}` ({columns}) VALUES ({placeholders})"
+
+        try:
+            # Insert the values in bulk
+            mycursor.executemany(sql, values)
+            connection.commit()  # Commit after each chunk for better performance and resilience
+        except mysql.connector.Error as err:
+            print(f"Error inserting chunk: {err}")
+            connection.rollback()  # Rollback the transaction if an error occurs
+
+    mycursor.close()
+
+# Example of how to use the function
+# Assuming you already have a connection object and your DataFrame `data1`
+# Insert the DataFrame into the 'data1' table
+
+insert_dataframe_into_sql(data2, connection, 'data2')
+
+# Close the connection after the insert
+connection.close()
+
+mycursor.execute("""CREATE TABLE data3 (
+    `DIST CODE` VARCHAR(255),
+    `YEAR` INT(4),
+    `STATE CODE` VARCHAR(255),
+    `STATE NAME` VARCHAR(255),
+    `DIST NAME` VARCHAR(255),
+    `MINOR PULSES AREA (1000 HA)` FLOAT,
+    `MINOR PULSES PRODUCTION (1000 TONS)` FLOAT,
+    `MINOR PULSES YIELD (KG PER HA)` FLOAT,
+    `GROUNDNUT AREA (1000 HA)` FLOAT,
+    `GROUNDNUT PRODUCTION (1000 TONS)` FLOAT,
+    `GROUNDNUT YIELD (KG PER HA)` FLOAT,
+    `SESAMUM AREA (1000 HA)` FLOAT,
+    `SESAMUM PRODUCTION (1000 TONS)` FLOAT,
+    `SESAMUM YIELD (KG PER HA)` FLOAT,
+    `RAPESEED AND MUSTARD AREA (1000 HA)` FLOAT,
+    `RAPESEED AND MUSTARD PRODUCTION (1000 TONS)` FLOAT,
+    `RAPESEED AND MUSTARD YIELD (KG PER HA)` FLOAT,
+    `SAFFLOWER AREA (1000 HA)` FLOAT,
+    `SAFFLOWER PRODUCTION (1000 TONS)` FLOAT,
+    `SAFFLOWER YIELD (KG PER HA)` FLOAT,
+    `CASTOR AREA (1000 HA)` FLOAT,
+    `CASTOR PRODUCTION (1000 TONS)` FLOAT,
+    `CASTOR YIELD (KG PER HA)` FLOAT,
+    `LINSEED AREA (1000 HA)` FLOAT,
+    `LINSEED PRODUCTION (1000 TONS)` FLOAT,
+    `LINSEED YIELD (KG PER HA)` FLOAT)"""
+)
+
+import pandas as pd
+import mysql.connector
+
+def insert_dataframe_into_sql(df, connection, table_name):
+    """
+    Inserts a Pandas DataFrame into an SQL table.
+
+    Args:
+        df: The Pandas DataFrame to insert.
+        connection: An active MySQLdb connection object.
+        table_name: The name of the table to insert into.
+    """
+    mycursor = connection.cursor()
+
+    # Efficiently insert data in chunks
+    chunk_size = 1000  # Adjust chunk size based on your database and network
+    for i in range(0, len(df), chunk_size):
+        chunk = df[i:i + chunk_size]
+        values = []
+        for index, row in chunk.iterrows():
+            # Replace NaN with None for SQL compatibility
+            row = row.where(pd.notna(row), None)  
+            values.append(tuple(row))
+
+        # Escape column names with backticks to handle special characters like spaces and parentheses
+        columns = ', '.join([f"`{col}`" for col in df.columns])  # Add backticks around column names
+
+        # Create placeholders for the SQL query
+        placeholders = ', '.join(['%s'] * len(df.columns))
+        
+        sql = f"INSERT INTO `{table_name}` ({columns}) VALUES ({placeholders})"
+
+        try:
+            # Insert the values in bulk
+            mycursor.executemany(sql, values)
+            connection.commit()  # Commit after each chunk for better performance and resilience
+        except mysql.connector.Error as err:
+            print(f"Error inserting chunk: {err}")
+            connection.rollback()  # Rollback the transaction if an error occurs
+
+    mycursor.close()
+
+# Example of how to use the function
+# Assuming you already have a connection object and your DataFrame `data1`
+# Insert the DataFrame into the 'data1' table
+
+insert_dataframe_into_sql(data3, connection, 'data3')
+
+# Close the connection after the insert
+connection.close()
+
+mycursor.execute("""CREATE TABLE data4 (
+    `DIST CODE` VARCHAR(255),
+    `YEAR` INT(4),
+    `STATE CODE` VARCHAR(255),
+    `STATE NAME` VARCHAR(255),
+    `DIST NAME` VARCHAR(255),
+    `SUNFLOWER AREA (1000 HA)` FLOAT,
+    `SUNFLOWER PRODUCTION (1000 TONS)` FLOAT,
+    `SUNFLOWER YIELD (KG PER HA)` FLOAT,
+    `SOYABEAN AREA (1000 HA)` FLOAT,
+    `SOYABEAN PRODUCTION (1000 TONS)` FLOAT,
+    `SOYABEAN YIELD (KG PER HA)` FLOAT,
+    `OILSEEDS AREA (1000 HA)` FLOAT,
+    `OILSEEDS PRODUCTION (1000 TONS)` FLOAT,
+    `OILSEEDS YIELD (KG PER HA)` FLOAT,
+    `SUGARCANE AREA (1000 HA)` FLOAT,
+    `SUGARCANE PRODUCTION (1000 TONS)` FLOAT,
+    `SUGARCANE YIELD (KG PER HA)` FLOAT,
+    `COTTON AREA (1000 HA)` FLOAT,
+    `COTTON PRODUCTION (1000 TONS)` FLOAT,
+    `COTTON YIELD (KG PER HA)` FLOAT,
+    `FRUITS AREA (1000 HA)` FLOAT,
+    `VEGETABLES AREA (1000 HA)` FLOAT,
+    `FRUITS AND VEGETABLES AREA (1000 HA)` FLOAT,
+    `POTATOES AREA (1000 HA)` FLOAT,
+    `ONION AREA (1000 HA)` FLOAT,
+    `FODDER AREA (1000 HA)` FLOAT)"""
+)
+
+import pandas as pd
+import mysql.connector
+
+def insert_dataframe_into_sql(df, connection, table_name):
+    """
+    Inserts a Pandas DataFrame into an SQL table.
+
+    Args:
+        df: The Pandas DataFrame to insert.
+        connection: An active MySQLdb connection object.
+        table_name: The name of the table to insert into.
+    """
+    mycursor = connection.cursor()
+
+    # Efficiently insert data in chunks
+    chunk_size = 1000  # Adjust chunk size based on your database and network
+    for i in range(0, len(df), chunk_size):
+        chunk = df[i:i + chunk_size]
+        values = []
+        for index, row in chunk.iterrows():
+            # Replace NaN with None for SQL compatibility
+            row = row.where(pd.notna(row), None)  
+            values.append(tuple(row))
+
+        # Escape column names with backticks to handle special characters like spaces and parentheses
+        columns = ', '.join([f"`{col}`" for col in df.columns])  # Add backticks around column names
+
+        # Create placeholders for the SQL query
+        placeholders = ', '.join(['%s'] * len(df.columns))
+        
+        sql = f"INSERT INTO `{table_name}` ({columns}) VALUES ({placeholders})"
+
+        try:
+            # Insert the values in bulk
+            mycursor.executemany(sql, values)
+            connection.commit()  # Commit after each chunk for better performance and resilience
+        except mysql.connector.Error as err:
+            print(f"Error inserting chunk: {err}")
+            connection.rollback()  # Rollback the transaction if an error occurs
+
+    mycursor.close()
+
+# Example of how to use the function
+# Assuming you already have a connection object and your DataFrame `data1`
+# Insert the DataFrame into the 'data1' table
+
+insert_dataframe_into_sql(data4, connection, 'data4')
+
+# Close the connection after the insert
+connection.close()
+
+%pip install tabulate
+
+#1.Top 7 RICE PRODUCTION State Data(Bar_plot)
+mycursor.execute("""
+    SELECT `STATE NAME`, SUM(`RICE PRODUCTION (1000 TONS)`) AS `TOTAL_RICE_PRODUCTION`
+    FROM data1
+    GROUP BY `STATE NAME`
+    ORDER BY `TOTAL_RICE_PRODUCTION` DESC
+    LIMIT 7
+""")
+out=mycursor.fetchall()
+from tabulate import tabulate
+print(tabulate(out,headers=[i[0] for i in mycursor.description],  tablefmt='psql'))
+
+#2.Top 5 Wheat Producing States Data(Bar_chart)and its percentage(%)(Pie_chart)
+mycursor.execute("""
+    SELECT `STATE NAME`, SUM(`WHEAT PRODUCTION (1000 TONS)`) AS `TOTAL_WHEAT_PRODUCTION`
+    FROM data1
+    GROUP BY `STATE NAME`
+    ORDER BY `TOTAL_WHEAT_PRODUCTION` DESC
+    LIMIT 5
+""")
+out=mycursor.fetchall()
+from tabulate import tabulate
+print(tabulate(out,headers=[i[0] for i in mycursor.description],  tablefmt='psql'))
+
+#3.Oil seed production by top 5 states
+mycursor.execute("""
+    SELECT `STATE NAME`, SUM(`OILSEEDS PRODUCTION (1000 TONS)`) AS `TOTAL_OILSEEDS_PRODUCTION`
+    FROM data4
+    GROUP BY `STATE NAME`
+    ORDER BY `TOTAL_OILSEEDS_PRODUCTION` DESC
+    LIMIT 5
+""")
+out=mycursor.fetchall()
+from tabulate import tabulate
+print(tabulate(out,headers=[i[0] for i in mycursor.description],  tablefmt='psql'))
+
+#4.Top 7 SUNFLOWER PRODUCTION  State
+mycursor.execute("""
+    SELECT `STATE NAME`, SUM(`SUNFLOWER PRODUCTION (1000 TONS)`) AS `TOTAL_SUNFLOWER_PRODUCTION`
+    FROM data4
+    GROUP BY `STATE NAME`
+    ORDER BY `TOTAL_SUNFLOWER_PRODUCTION` DESC
+    LIMIT 7
+""")
+out=mycursor.fetchall()
+from tabulate import tabulate
+print(tabulate(out,headers=[i[0] for i in mycursor.description],  tablefmt='psql'))
+
+#5.India's SUGARCANE PRODUCTION From Last 50 Years(Line_plot)
+mycursor.execute("""
+    SELECT `YEAR`, SUM(`SUGARCANE PRODUCTION (1000 TONS)`) AS `TOTAL_SUGARCANE_PRODUCTION`
+    FROM data4
+    GROUP BY `YEAR`
+    ORDER BY `YEAR` DESC
+    LIMIT 50
+""")
+out=mycursor.fetchall()
+from tabulate import tabulate
+print(tabulate(out,headers=[i[0] for i in mycursor.description],  tablefmt='psql'))
+
+
+#6.Rice Production Vs Wheat Production (Last 50y)
+mycursor.execute("""SELECT `YEAR`, 
+       SUM(`RICE PRODUCTION (1000 TONS)`) AS `TOTAL_RICE_PRODUCTION`, 
+       SUM(`WHEAT PRODUCTION (1000 TONS)`) AS `TOTAL_WHEAT_PRODUCTION`
+FROM data1
+GROUP BY `YEAR`
+ORDER BY `YEAR` DESC
+LIMIT 50""")
+out=mycursor.fetchall()
+from tabulate import tabulate
+print(tabulate(out,headers=[i[0] for i in mycursor.description],  tablefmt='psql'))
+
+#7.Rice Production By West Bengal Districts
+mycursor.execute("""SELECT `STATE NAME`, `DIST NAME`, `RICE PRODUCTION (1000 TONS)` AS `TOTAL_RICE_PRODUCTION`
+FROM `data1`
+WHERE `STATE NAME` = 'West Bengal'""")
+out=mycursor.fetchall()
+from tabulate import tabulate
+print(tabulate(out,headers=[i[0] for i in mycursor.description],  tablefmt='psql'))
+
+#8.Top 10 Wheat Production Years From UP
+mycursor.execute("""SELECT `YEAR`, `STATE NAME`, SUM(`WHEAT PRODUCTION (1000 TONS)`) AS `TOTAL_WHEAT_PRODUCTION`
+FROM `data1`
+WHERE `STATE NAME` = 'Uttar Pradesh'
+GROUP BY `YEAR`
+ORDER BY `TOTAL_WHEAT_PRODUCTION` DESC
+LIMIT 10""")
+out=mycursor.fetchall()
+from tabulate import tabulate
+print(tabulate(out,headers=[i[0] for i in mycursor.description],  tablefmt='psql'))
+
+#9.Millet Production (Last 50y)
+mycursor.execute("""SELECT `YEAR`, 
+       SUM(`PEARL MILLET PRODUCTION (1000 TONS)`) AS `TOTAL_PEARL_MILLET_PRODUCTION`, 
+       SUM(`FINGER MILLET PRODUCTION (1000 TONS)`) AS `TOTAL_FINGER_MILLET_PRODUCTION` 
+FROM `data2`
+GROUP BY `YEAR`
+ORDER BY `YEAR` DESC
+LIMIT 50""")
+out=mycursor.fetchall()
+from tabulate import tabulate
+print(tabulate(out,headers=[i[0] for i in mycursor.description],  tablefmt='psql'))
+
+#10.Sorghum Production (Kharif and Rabi) by Region
+mycursor.execute("""SELECT `STATE NAME`, 
+       SUM(`KHARIF SORGHUM PRODUCTION (1000 TONS)`) AS `TOTAL_KHARIF_SORGHUM_PRODUCTION`, 
+       SUM(`RABI SORGHUM PRODUCTION (1000 TONS)`) AS `TOTAL_RABI_SORGHUM_PRODUCTION`
+FROM `data1`
+GROUP BY `STATE NAME`""")
+out=mycursor.fetchall()
+from tabulate import tabulate
+print(tabulate(out,headers=[i[0] for i in mycursor.description],  tablefmt='psql'))
+
+
+#11.Top 7 States for Groundnut Production
+mycursor.execute("""SELECT `STATE NAME`, 
+       SUM(`GROUNDNUT PRODUCTION (1000 TONS)`) AS `TOTAL_GROUNDNUT_PRODUCTION`
+FROM `data3`
+GROUP BY `STATE NAME`
+ORDER BY `TOTAL_GROUNDNUT_PRODUCTION` DESC
+LIMIT 7 """)
+out=mycursor.fetchall()
+from tabulate import tabulate
+print(tabulate(out,headers=[i[0] for i in mycursor.description],  tablefmt='psql'))
+
+#12.Soybean Production by Top 5 States and Yield Efficiency
+mycursor.execute("""SELECT `STATE NAME`, 
+       SUM(`SOYABEAN PRODUCTION (1000 TONS)`) AS `TOTAL_SOYABEAN_PRODUCTION`,
+       SUM(`SOYABEAN AREA (1000 HA)`) AS `TOTAL_SOYABEAN_AREA`,
+       (SUM(`SOYABEAN PRODUCTION (1000 TONS)`) / SUM(`SOYABEAN AREA (1000 HA)`)) AS `YIELD_EFFICIENCY`
+FROM `data4`
+GROUP BY `STATE NAME`
+ORDER BY `TOTAL_SOYABEAN_PRODUCTION` DESC
+LIMIT 5""")
+out=mycursor.fetchall()
+from tabulate import tabulate
+print(tabulate(out,headers=[i[0] for i in mycursor.description],  tablefmt='psql'))
+
+#13.Oilseed Production in Major States
+mycursor.execute("""SELECT `STATE NAME`, 
+       SUM(`OILSEEDS PRODUCTION (1000 TONS)`) AS `TOTAL_OILSEED_PRODUCTION`,
+       SUM(`OILSEEDS AREA (1000 HA)`) AS `TOTAL_OILSEED_AREA`
+FROM `data4`
+GROUP BY `STATE NAME`
+ORDER BY `TOTAL_OILSEED_PRODUCTION` DESC
+LIMIT 5""")
+out=mycursor.fetchall()
+from tabulate import tabulate
+print(tabulate(out,headers=[i[0] for i in mycursor.description],  tablefmt='psql'))
+
+#14.Rice vs. Wheat Yield Across States
+mycursor.execute("""SELECT 
+    `STATE NAME`, 
+    SUM(`RICE YIELD (KG PER HA)`) As TOTAL_RICE_YIELD, 
+    SUM(`WHEAT YIELD (KG PER HA)`)As TOTAL_WHEAT_YIELD 
+FROM 
+    data1 
+GROUP BY 
+    `STATE NAME`""")
+out=mycursor.fetchall()
+from tabulate import tabulate
+print(tabulate(out,headers=[i[0] for i in mycursor.description],  tablefmt='psql'))
+
+#15.Impact of Area Cultivated on Production (Rice, Wheat, Maize)
+mycursor.execute("""SELECT d1.`STATE NAME`,
+(SUM(d1.`RICE PRODUCTION (1000 TONS)`) / SUM(d1.`RICE AREA (1000 HA)`)) AS `RICE_YIELD_EFFICIENCY`, 
+(SUM(d1.`WHEAT PRODUCTION (1000 TONS)`) / SUM(d1.`WHEAT AREA (1000 HA)`)) AS `WHEAT_YIELD_EFFICIENCY`,
+(SUM(d2.`MAIZE PRODUCTION (1000 TONS)`) / SUM(d2.`MAIZE AREA (1000 HA)`)) AS `MAIZE_YIELD_EFFICIENCY`
+FROM `data1`d1 INNER JOIN `data2`d2 ON d1.`STATE NAME`=d2.`STATE NAME`
+GROUP BY `STATE NAME`
+""")
+out=mycursor.fetchall()
+from tabulate import tabulate
+print(tabulate(out,headers=[i[0] for i in mycursor.description],  tablefmt='psql'))
+
+#16.Year-wise Trend of Rice Production Across States (Top 3)
+mycursor.execute("""SELECT 
+    `YEAR`, 
+    `STATE NAME`, 
+    SUM(`RICE YIELD (KG PER HA)`) AS Rice_Yield 
+FROM 
+    data1 
+GROUP BY 
+    `YEAR`, `STATE NAME`
+ORDER BY 
+    Rice_Yield DESC
+LIMIT 3""")
+out=mycursor.fetchall()
+from tabulate import tabulate
+print(tabulate(out,headers=[i[0] for i in mycursor.description],  tablefmt='psql'))
+
+#17.District-wise Correlation Between Area and Production for Major Crops (Rice, Wheat
+import pandas as pd
+
+# Assuming you've already run this query:
+mycursor.execute("""
+SELECT
+    `STATE NAME`,
+    `DIST NAME`,
+    `YEAR`,
+    `RICE AREA (1000 HA)`, `RICE PRODUCTION (1000 TONS)`,
+    `WHEAT AREA (1000 HA)`, `WHEAT PRODUCTION (1000 TONS)`
+FROM data1
+""")
+
+# Load into DataFrame
+df = pd.DataFrame(mycursor.fetchall(), columns=[i[0] for i in mycursor.description])
+
+
+correlations = []
+
+for (state, district), group in df.groupby(['STATE NAME', 'DIST NAME']):
+    row = {'STATE NAME': state, 'DIST NAME': district}
+
+    # Rice correlation
+    rice_data = group[['RICE AREA (1000 HA)', 'RICE PRODUCTION (1000 TONS)']].dropna()
+    if len(rice_data) > 1:
+        row['Rice Corr'] = rice_data.corr().iloc[0, 1]
+    else:
+        row['Rice Corr'] = None
+
+    # Wheat correlation
+    wheat_data = group[['WHEAT AREA (1000 HA)', 'WHEAT PRODUCTION (1000 TONS)']].dropna()
+    if len(wheat_data) > 1:
+        row['Wheat Corr'] = wheat_data.corr().iloc[0, 1]
+    else:
+        row['Wheat Corr'] = None
+
+    correlations.append(row)
+
+corr_df = pd.DataFrame(correlations)
+
+
+from tabulate import tabulate
+print(tabulate(corr_df.head(10), headers='keys', tablefmt='psql'))
+
+
+mycursor.execute("""WITH top_states AS (
+    SELECT `STATE NAME`
+    FROM data4
+    GROUP BY `STATE NAME`
+    ORDER BY SUM(`COTTON PRODUCTION (1000 TONS)`) DESC
+    LIMIT 5
+),
+yearly_prod AS (
+    SELECT 
+        `YEAR`,
+        `STATE NAME`,
+        SUM(`COTTON PRODUCTION (1000 TONS)`) AS Yearly_Production
+    FROM data4
+    WHERE `STATE NAME` IN (SELECT `STATE NAME` FROM top_states)
+    GROUP BY `YEAR`, `STATE NAME`
+),
+growth_calc AS (
+    SELECT 
+        `STATE NAME`,
+        `YEAR`,
+        Yearly_Production,
+        LAG(Yearly_Production) OVER (PARTITION BY `STATE NAME` ORDER BY `YEAR`) AS Prev_Year_Production
+    FROM yearly_prod
+)
+SELECT 
+    `STATE NAME`,
+    `YEAR`,
+    Yearly_Production,
+    ROUND(((Yearly_Production - Prev_Year_Production) / Prev_Year_Production) * 100, 2) AS Cotton_Growth_Percentage
+FROM growth_calc
+WHERE Prev_Year_Production IS NOT NULL
+ORDER BY `STATE NAME`, `YEAR`
+LIMIT 25;""") 
+#This will show growth for the top 5 states for the most recent 5 years
+
+out = mycursor.fetchall()
+from tabulate import tabulate
+print(tabulate(out, headers=[i[0] for i in mycursor.description], tablefmt='psql'))
+
+
+#19.Districts with the Highest Groundnut Production in 2010
+mycursor.execute("""SELECT 
+    `DIST NAME`, 
+    `YEAR`, 
+    SUM(`GROUNDNUT PRODUCTION (1000 TONS)`) AS `GROUNDNUT PRODUCTION`
+FROM data3
+WHERE `YEAR` = 2010
+GROUP BY `DIST NAME`, `YEAR`
+ORDER BY `GROUNDNUT PRODUCTION` DESC
+LIMIT 10;
+""")
+
+
+from tabulate import tabulate
+out = mycursor.fetchall()
+print(tabulate(out, headers=[i[0] for i in mycursor.description], tablefmt='psql'))
+
+
+#20.Total Area Cultivated for Oilseeds in Each State
+mycursor.execute("""SELECT 
+    `STATE NAME`, 
+    SUM(`OILSEEDS AREA (1000 HA)`) AS `Area Cultivated for Oilseeds`
+FROM data4
+GROUP BY `STATE NAME`
+ORDER BY `Area Cultivated for Oilseeds` DESC""")
+from tabulate import tabulate
+out = mycursor.fetchall()
+print(tabulate(out, headers=[i[0] for i in mycursor.description], tablefmt='psql'))
