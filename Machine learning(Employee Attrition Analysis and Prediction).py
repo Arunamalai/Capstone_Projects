@@ -609,13 +609,13 @@ with st.form("prediction_form"):
         # Map Tenure Category to numeric value
         def map_tenure_label_to_numeric(label):
             if "New" in label:
-                return 1
+                return 0
             elif "Junior" in label:
-                return 3
+                return 1
             elif "Senior" in label:
-                return 7
+                return 2
             else:  # Super Senior
-                return 11
+                return 3
 
         TenureCategory_numeric = map_tenure_label_to_numeric(TenureCategory_label)
 
@@ -641,4 +641,3 @@ with st.form("prediction_form"):
 # Footer
 st.markdown("---")
 st.markdown("<p style='text-align: center; color: gray;'>Model Accuracy: 86% | Built with ❤️ using Streamlit</p>", unsafe_allow_html=True)
-
