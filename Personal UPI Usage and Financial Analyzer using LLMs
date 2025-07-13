@@ -1,0 +1,82 @@
+%pip install google-generativeai
+import pdfplumber
+import pandas as pd
+import google.generativeai as genai
+
+def extract_text_from_pdf(pdf_file):
+    text = ""
+    with pdfplumber.open(pdf_file) as pdf:
+        for page in pdf.pages:
+            text += page.extract_text() or ""
+    return text.lower()
+
+def is_financial_document(text):
+    keywords = [
+        "upi", "debited", "credited", "transaction", "inr", "rs.",
+        "account", "balance", "statement", "imps", "neft", "to", "by", "payment"
+    ]
+    return any(keyword in text for keyword in keywords)
+
+
+def analyze_financial_data(text):
+    model = genai.GenerativeModel("models/gemini-1.5-flash")
+    genai.configure(api_key="AIzaSyDaDcZR7bljOCCKo2qp6OfnQiXLmft1ozk")
+
+    prompt = f"""
+You are a personal finance assistant.
+
+Analyze the following transaction history and generate financial insights:
+
+{text}
+
+Provide a detailed breakdown in the following format:
+
+Financial Insights for [User Name] for the period [From Date] to [To Date]
+
+**Key Details**
+- Bank/Wallet Detected: [Name]
+- Total Transactions: [Number]
+- Time Period Covered: [Dates]
+
+**Overall Monthly Income and Expenses**
+Month: [Month]
+- Income: ₹[Amount]
+- Expenses: ₹[Amount]
+
+**Unnecessary Expenses Analysis**
+Expense Category: [Category Name]
+- Amount: ₹[Amount]
+- Recommendation: [How to reduce these expenses]
+
+**Category-Wise Spending Breakdown**
+Category: [Category Name] - ₹[Amount]
+
+**Frequent Transaction Analysis**
+- Most Frequent Expense Category: [Category]
+- Notes: [Patterns, repetition, subscriptions]
+
+**Savings Percentage Calculation (Month-wise)**
+Month: [Month] - Savings Percentage: [Percentage]%
+
+**Expense Trend Analysis**
+Notable Trends: [Trend Details]
+
+**Cost Control Recommendations**
+Suggestions: [Detailed Saving and Budget Advice]
+"""
+
+    response = model.generate_content(prompt)
+    print(response.text)
+
+
+def analyze_file(pdf_file):
+    text = extract_text_from_pdf(pdf_file)
+
+    if not is_financial_document(text):
+        return "❌ This is not a valid bank or UPI transaction statement."
+
+    return analyze_financial_data(text)
+
+# Example usage:
+result = analyze_file("C:/Users/Arunamalai/Downloads/LAST 6 MONTH SUMMARY.pdf")
+print(result)
