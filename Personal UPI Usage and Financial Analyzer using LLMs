@@ -20,7 +20,7 @@ def is_financial_document(text):
 
 def analyze_financial_data(text):
     model = genai.GenerativeModel("models/gemini-1.5-flash")
-    genai.configure(api_key="AIzaSyDaDcZR7bljOCCKo2qp6OfnQiXLmft1ozk")
+    genai.configure(api_key="")
 
     prompt = f"""
 You are a personal finance assistant.
