@@ -1,1 +1,1242 @@
 import pandas as pd
+import pandas as np
+import string
+data=pd.read_csv(r"C:\Users\Arunamalai\Downloads\chatgpt_reviews (1).csv")
+data
+data.info()
+data.describe()
+data['rating'].value_counts()
+data.duplicated().sum()
+data['review'].duplicated().sum()
+data[data['review'].duplicated()]#duplicate reviews are not a problem eg:reviews like amazing , Thanks
+data.shape
+data["review"] = data["review"].str.lower()
+data
+
+#Remove Extra Whitespaces
+def remove_whitespace(text):
+    return  " ".join(text.split())
+
+# Test
+text = "     We      will        going to win this match"
+remove_whitespace(text)
+
+data['review']=data['review'].apply(remove_whitespace)
+!pip install symspellpy
+%pip install setuptools
+
+import pandas as pd
+from symspellpy import SymSpell, Verbosity
+import pkg_resources
+
+sym_spell = SymSpell(max_dictionary_edit_distance=2, prefix_length=7)
+dictionary_path = pkg_resources.resource_filename("symspellpy", "frequency_dictionary_en_82_765.txt")
+bigram_path = pkg_resources.resource_filename(
+    "symspellpy", "frequency_bigramdictionary_en_243_342.txt")
+# term_index is the column of the term and count_index is the
+# column of the term frequency
+sym_spell.load_dictionary(dictionary_path, term_index=0, count_index=1)
+sym_spell.load_bigram_dictionary(bigram_path, term_index=0, count_index=2)
+
+# input_term = "memebers"  # misspelling of "members"
+# max edit distance per lookup
+# (max_edit_distance_lookup <= max_dictionary_edit_distance)
+# input_term = "whereis th elove hehad dated forImuch of thepast who couqdn'tread in sixtgrade and ins pired him"
+
+for ind in data["review"].index:
+  text = data.iloc[ind]["review"]
+  input_text = " ".join(text)
+  # print(input_text)
+  data.iloc[ind]["review"] = sym_spell.lookup_compound(input_text,max_edit_distance=2)
+
+
+data["review"]
+
+%pip install pyspellchecker
+
+import nltk
+nltk.download('punkt')
+
+import nltk
+nltk.download('punkt_tab')
+
+%pip install emoji
+
+# directly convert emoji to short words
+import re
+
+emoji_dict = {
+    "😀": "happy",
+    "😃": "happy",
+    "😄": "happy",
+    "😁": "happy",
+    "😂": "laugh",
+    "🤣": "laugh",
+    "😊": "smile",
+    "😍": "love",
+    "😘": "love",
+    "😢": "sad",
+    "😭": "cry",
+    "😡": "angry",
+    "😠": "angry",
+    "👍": "good",
+    "👎": "bad",
+    "🔥": "fire",
+    "❤️": "love",
+    "💔": "broken_heart",
+}
+
+def emoji_to_word(text):
+    return ''.join(emoji_dict.get(char, char) for char in text)
+data['review']=data['review'].apply(emoji_to_word)
+
+#import emoji
+
+#def convert_emoji_to_text(text):
+    # Convert emoji into description words
+   # return emoji.demojize(text, delimiters=(" ", " "))
+
+#s = "I love this movie 😍🔥"
+#print(emoji_to_word(s))
+
+#data['review']=data['review'].apply(convert_emoji_to_text)
+
+import re
+
+emoticon_dict = {
+    ":)": "happy",
+    ":-)": "happy",
+    ":D": "laugh",
+    ":-D": "laugh",
+    ":(": "sad",
+    ":-(": "sad",
+    ":'(": "cry",
+    ":'-(": "cry",
+    "XD": "laugh",
+    "xD": "laugh",
+    ":P": "playful",
+    ":-P": "playful",
+    ";)": "wink",
+    ";-)": "wink",
+    ":-/": "confused",
+    ":-|": "neutral",
+    ">:(": "angry",
+    ":-O": "surprised",
+    ":O": "surprised",
+}
+
+def emoticon_to_word(text):
+    # Replace emoticons with words
+    for emo, word in emoticon_dict.items():
+        text = re.sub(re.escape(emo), word, text)
+    return text
+data['review']=data['review'].apply(emoticon_to_word)
+
+chat_dict = {
+    "u": "you",
+    "ur": "your",
+    "idk": "i do not know",
+    "btw": "by the way",
+    "lol": "laughing out loud",
+    "omg": "oh my god",
+    "brb": "be right back",
+    "thx": "thanks",
+    "pls": "please",
+    "plz": "please",
+    "np": "no problem",
+    "omw": "on my way",
+    "imo": "in my opinion",
+    "ttyl": "talk to you later",
+    "lmao": "laughing my ass off",
+    "smh": "shaking my head",
+    "fyi": "for your information",
+    "tbh": "to be honest",
+    "idc": "i do not care"
+}
+
+def expand_chat_words(text):
+    words = text.split()
+    expanded = [chat_dict[w.lower()] if w.lower() in chat_dict else w for w in words]
+    return " ".join(expanded)
+s = "idk why u r late lol"
+print(expand_chat_words(s))
+data['review']=data['review'].apply(expand_chat_words)
+
+import nltk
+nltk.download('stopwords')
+
+import re
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+
+# Download once
+nltk.download('stopwords')
+nltk.download('punkt')
+
+stop_words = set(stopwords.words('english'))
+
+# Define negation words
+negations = {"not", "no", "never"}
+
+# Contraction expansion (focus on negations)
+contractions = {
+    "wasn't": "was not",
+    "isn't": "is not",
+    "aren't": "are not",
+    "don't": "do not",
+    "doesn't": "does not",
+    "didn't": "did not",
+    "can't": "can not",
+    "won't": "will not",
+    "shouldn't": "should not",
+    "wouldn't": "would not",
+    "couldn't": "could not"
+}
+
+def expand_contractions(text):
+    for key, value in contractions.items():
+        text = re.sub(key, value, text)
+    return text
+
+def cleansing(review):
+    review = review.lower()
+    review = expand_contractions(review)                 # expand contractions first
+    review = re.sub(r'[?|$|.|!_:")(-+,]', '', review)    # remove punctuation
+    review = re.sub(r'\d+', '', review)                  # remove digits
+    
+    # Tokenize
+    tokens = word_tokenize(review)
+    
+    # Remove stopwords & single letters, but KEEP negations
+    tokens = [word for word in tokens 
+              if (word not in stop_words or word in negations) and (len(word) > 1 or word in negations)]
+    
+    return " ".join(tokens)
+print(cleansing("I don't like this movie"))
+print(cleansing("This isn't good at all"))
+
+data['review'] = data['review'].astype(str).apply(cleansing)
+data.head(10)
+
+def remove_urls(text):
+    url_pattern = re.compile(r'https?://\S+|www\.\S+')
+    return url_pattern.sub(r'', text)
+
+#Test
+text = "Machine learning knowledge is an awsome site. Here is the link for it https://machinelearningknowledge.ai/"
+remove_urls(text)
+
+data['review'] = data['review'].apply(remove_urls)
+data.head()
+
+import nltk
+from nltk import word_tokenize
+data['review']=data['review'].apply(lambda X: word_tokenize(X))
+data.head()
+
+from nltk.tokenize import RegexpTokenizer
+
+def remove_punct(text):
+
+    tokenizer = RegexpTokenizer(r"\w+")
+    lst=tokenizer.tokenize(' '.join(text))
+    return lst
+
+    #Test
+text=data['review'][0]
+print(text)
+remove_punct(text)
+
+data['review'] = data['review'].apply(remove_punct)
+data.head(10)
+
+data.head(5)
+
+#import nltk
+#from nltk import word_tokenize
+#data['review']=data['review'].apply(lambda X: word_tokenize(X))
+#data.head()
+data
+
+data['review'].isna().sum()
+
+from nltk import FreqDist
+
+def frequent_words(data):
+    lst = []
+    for tokens in data.values:
+        if isinstance(tokens, list):     # already list of words
+            lst.extend(tokens)
+        else:                            # fallback: split string
+            lst.extend(str(tokens).split())
+    fdist = FreqDist(lst)
+    return fdist.most_common(20)
+
+print(frequent_words(data['review']))
+
+# Words you want to remove
+words_to_remove = {"app", "chatgpt",'gpt','would','s'}
+
+def remove_specific_words(tokens):
+    return [word for word in tokens if word not in words_to_remove]
+
+# Apply to reviews (after tokenization)
+data['review'] = data['review'].apply(remove_specific_words)
+
+print(frequent_words(data['review']))
+
+from nltk.stem import WordNetLemmatizer
+from nltk import word_tokenize,pos_tag
+import nltk
+nltk.download('averaged_perceptron_tagger')
+nltk.download('wordnet')
+import nltk
+nltk.download('averaged_perceptron_tagger_eng')
+def lemmatization(text):
+
+    result=[]
+    wordnet = WordNetLemmatizer()
+    for token,tag in pos_tag(text):
+        pos=tag[0].lower()
+
+        if pos not in ['a', 'r', 'n', 'v']:
+            pos='n'
+
+        result.append(wordnet.lemmatize(token,pos))
+
+    return result
+
+#Test
+text = ['running','ran','runs']
+lemmatization(text)
+
+data['review']=data['review'].apply(lemmatization)
+data.head()
+
+# Stemming
+#from nltk.stem import PorterStemmer
+
+#def stemming(text):
+#    porter = PorterStemmer()
+
+#    result=[]
+ #   for word in text:
+  #      result.append(porter.stem(word))
+  #  return result
+
+#Test
+#text=['Connects','Connecting','Connections','Connected','Connection','Connectings','Connect']
+#stemming(text)
+
+#data['review']=data['review'].apply(stemming)
+#data.head()
+
+data['sentiment'] = data['rating'].apply(label_rating)
+
+# remove missing ratings/reviews
+data = data.dropna(subset=['review', 'rating'])
+
+print(data['sentiment'].value_counts())
+
+#EDA
+dates = pd.concat([data['date']],axis=0)
+
+# Convertimos la serie a datetime
+dates = pd.to_datetime(dates, errors='coerce')  # Esto también maneja valores inválidos
+
+dates = dates.dropna()
+
+# Extraemos solo la parte de la fecha ya que no necesitamos tanta precisión incluyendo la hora
+fechas = dates.dt.date
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+plt.figure(figsize=(10, 6))
+sns.histplot(dates, bins=40)
+plt.xticks(rotation=45)
+plt.title('Distributión of dates')
+plt.show()
+
+plt.figure(figsize=(8,5))
+sns.countplot(x="rating", data=data, palette="Blues")
+plt.title("Número de Reseñas por Rating")
+plt.xlabel("Rating")
+plt.ylabel("Cantidad")
+plt.show()
+
+ratings = data['rating'].value_counts().sort_index()
+
+fig, ax = plt.subplots(figsize=(6,6))
+ax.pie(
+    ratings,
+    labels=ratings.index,
+    autopct='%1.1f%%',
+    startangle=90,
+    colors=['#3c1b64', '#803577', '#eca57f', '#DC143C', '#cb5c73']
+)
+
+ax.axis('equal')  # make it circular
+plt.title('Distribution of Ratings')
+plt.show()
+
+print(data.columns)
+
+#Create a Helpful Flag
+# Use word count of review as a proxy for helpfulness
+data['review_length'] = data['review'].apply(len)
+
+threshold = 50  # example threshold
+data['helpful_flag'] = data['review_length'].apply(lambda x: "👍 Helpful" if x > threshold else "👎 Not Helpful")
+
+print(data['helpful_flag'].value_counts())
+
+
+#Visualization
+#Bar chart (Thumbs up/down)
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+plt.figure(figsize=(6,4))
+sns.countplot(x='helpful_flag', data=data, palette=['#2ecc71','#e74c3c'])
+plt.title(f"Reviews Marked Helpful (>{threshold} chars)")
+plt.xlabel("")
+plt.ylabel("Counts")
+plt.show()
+
+#encoding
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+
+
+
+# Initialize LabelEncoder
+label_encoder = LabelEncoder()
+
+# Apply label encoding to the 'Gender' column
+data['sentiment'] = label_encoder.fit_transform(data['sentiment'])
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+plt.figure(figsize=(6,5))
+sns.countplot(x='sentiment', data=data, palette='magma_r')
+label_map = {0: "Negative", 1: "Positive"}
+
+
+plt.xlabel('Sentiment')
+plt.ylabel('Counts')
+plt.title('Distribution of sentiments(positive or negative)')
+plt.show()
+
+ratings = data['sentiment'].value_counts().sort_index()
+
+fig, ax = plt.subplots(figsize=(4,4))
+ax.pie(
+    ratings,
+    labels=ratings.index,
+    autopct='%1.1f%%',
+    startangle=90,
+    colors=['#3c1b64', '#DC143C']
+)
+
+ax.axis('equal')  # make it circular
+plt.title('Distribution of sentiment')
+plt.show()
+
+data['review'].isna().sum()
+
+X = data['review']         # text features
+y = data['sentiment']  
+
+X_text = data['review'].apply(lambda x: " ".join(x))
+from sklearn.feature_extraction.text import TfidfVectorizer
+vectorizer = TfidfVectorizer(max_features=2000)
+X_vect = vectorizer.fit_transform(X_text)
+
+X_text
+
+print(X_vect.toarray())
+
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(X_vect, y, test_size=0.2, random_state=42, stratify=y)
+
+#OverSampling(SMOTE)
+from imblearn.over_sampling import SMOTE
+smote = SMOTE()
+x_train_smote,y_train_smote=smote.fit_resample(X_train,y_train)
+ax = y_train_smote.value_counts().plot.pie(autopct='%.2f')
+_ = ax.set_title("Over-sampling using SMOTE")
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+NLP_model= LogisticRegression(class_weight='balanced', random_state=42, multi_class='multinomial', max_iter=500)
+NLP_model.fit(X_train,y_train)
+y_pred=NLP_model.predict(X_test)
+print(classification_report(y_test, y_pred))
+print(confusion_matrix(y_test, y_pred))
+
+cm = confusion_matrix(y_test, y_pred)
+sns.heatmap(cm, annot=True, fmt='d')
+
+#model evaluation
+import pandas as pd
+
+# Assuming y_pred and y_test are already defined
+# Create a crosstab to compare the predicted vs actual values
+crosstab = pd.crosstab(y_test, y_pred, rownames=['Actual'], colnames=['Predicted'])
+
+# Print the crosstab
+print(crosstab)
+
+# Example: Single user input review
+user_review = "Terrible experience at the Hotel Keerthana International!" 
+# Step 1: Vectorize using the same TF-IDF fitted earlier
+user_vect = vectorizer.transform([user_review])   # must use transform, not fit_transform
+
+# Step 2: Predict sentiment
+user_pred = NLP_model.predict(user_vect)[0]
+
+# Step 3: Map prediction to label
+if user_pred == 1:
+    print("😊 Sentiment: Positive")
+else:
+    print("😞 Sentiment: Negative")
+
+#Write a code to save and load pickle file of the model
+import pickle
+#save the model to a pickle file
+filename='LogisticRegression_model_NLP.pkl'
+pickle.dump(NLP_model,open(filename,'wb'))# this model containd trained mode(which is final value of y=mx+c)
+pickle.dump(vectorizer, open("vectorizer.pkl", "wb"))
+
+import os
+print(os.getcwd())
+
+%pip install wordcloud
+
+import pandas as pd
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+
+# Suppose you have a dataset with 'review' and 'rating' columns
+# Example: data = pd.read_csv("reviews.csv")
+
+# Positive reviews (4–5 stars)
+positive_reviews = data[data['rating'] >= 4]['review'].astype(str)
+
+# Negative reviews (1–2 stars)
+negative_reviews = data[data['rating'] <= 2]['review'].astype(str)
+
+# Combine text
+positive_text = " ".join(positive_reviews)
+negative_text = " ".join(negative_reviews)
+
+# Generate word clouds
+positive_wc = WordCloud(width=800, height=400, background_color="white", colormap="Greens").generate(positive_text)
+negative_wc = WordCloud(width=800, height=400, background_color="white", colormap="Reds").generate(negative_text)
+
+# Plot side by side
+plt.figure(figsize=(15, 6))
+
+plt.subplot(1, 2, 1)
+plt.imshow(positive_wc, interpolation="bilinear")
+plt.axis("off")
+plt.title("🌟 Positive Reviews (4–5 Stars)")
+
+plt.subplot(1, 2, 2)
+plt.imshow(negative_wc, interpolation="bilinear")
+plt.axis("off")
+plt.title("💔 Negative Reviews (1–2 Stars)")
+
+plt.show()
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# --- Split dataset ---
+positive_reviews = data[data['rating'] >= 4]['review'].astype(str)
+negative_reviews = data[data['rating'] <= 2]['review'].astype(str)
+
+# --- Helper function to get top words with TF-IDF ---
+def get_top_tfidf(text_series, n=20):
+    tfidf_vectorizer = TfidfVectorizer(stop_words='english', max_features=5000)
+    X_tfidf = tfidf_vectorizer.fit_transform(text_series)
+
+    # Sum TF-IDF values across documents
+    word_freq = np.asarray(X_tfidf.sum(axis=0)).flatten()
+    words = tfidf_vectorizer.get_feature_names_out()
+    word_freq_dict = dict(zip(words, word_freq))
+
+    # Sort and convert to DataFrame
+    sorted_word_freq = sorted(word_freq_dict.items(), key=lambda x: x[1], reverse=True)
+    data_word_freq = pd.DataFrame(sorted_word_freq, columns=['Word', 'TF-IDF'])
+    return data_word_freq.head(n)
+
+# --- Top 20 words for each group ---
+top_pos = get_top_tfidf(positive_reviews, 20)
+top_neg = get_top_tfidf(negative_reviews, 20)
+
+# --- Plot side by side ---
+fig, axes = plt.subplots(1, 2, figsize=(18, 8))
+
+sns.barplot(x='TF-IDF', y='Word', data=top_pos, ax=axes[0], palette='Greens_r')
+axes[0].set_title("Top 20 Words in Positive Reviews (4–5 stars)")
+axes[0].set_xlabel("TF-IDF Score")
+axes[0].set_ylabel("Word")
+
+sns.barplot(x='TF-IDF', y='Word', data=top_neg, ax=axes[1], palette='Reds_r')
+axes[1].set_title("Top 20 Words in Negative Reviews (1–2 stars)")
+axes[1].set_xlabel("TF-IDF Score")
+axes[1].set_ylabel("")
+
+plt.tight_layout()
+plt.show()
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# --- Split dataset ---
+positive_reviews = data[data['rating'] >= 4]['review'].astype(str)
+negative_reviews = data[data['rating'] <= 2]['review'].astype(str)
+
+# --- Helper function to get top words with TF-IDF ---
+def get_top_tfidf(text_series, n=20):
+    tfidf_vectorizer = TfidfVectorizer(stop_words='english', max_features=5000)
+    X_tfidf = tfidf_vectorizer.fit_transform(text_series)
+
+    # Sum TF-IDF values across documents
+    word_freq = np.asarray(X_tfidf.sum(axis=0)).flatten()
+    words = tfidf_vectorizer.get_feature_names_out()
+    word_freq_dict = dict(zip(words, word_freq))
+
+    # Sort and convert to DataFrame
+    sorted_word_freq = sorted(word_freq_dict.items(), key=lambda x: x[1], reverse=True)
+    data_word_freq = pd.DataFrame(sorted_word_freq, columns=['Word', 'TF-IDF'])
+    return data_word_freq.head(n)
+
+# --- Top 20 words for each group ---
+top_pos = get_top_tfidf(positive_reviews, 20)
+top_neg = get_top_tfidf(negative_reviews, 20)
+
+# --- Plot side by side ---
+fig, axes = plt.subplots(1, 2, figsize=(18, 8))
+
+sns.barplot(x='TF-IDF', y='Word', data=top_pos, ax=axes[0], palette='Greens_r')
+axes[0].set_title("Top 20 Words in Positive Reviews (4–5 stars)")
+axes[0].set_xlabel("TF-IDF Score")
+axes[0].set_ylabel("Word")
+
+sns.barplot(x='TF-IDF', y='Word', data=top_neg, ax=axes[1], palette='Reds_r')
+axes[1].set_title("Top 20 Words in Negative Reviews (1–2 stars)")
+axes[1].set_xlabel("TF-IDF Score")
+axes[1].set_ylabel("")
+
+plt.tight_layout()
+plt.show()
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# --- Split dataset ---
+positive_reviews = data[data['rating'] >= 4]['review'].astype(str)
+negative_reviews = data[data['rating'] <= 2]['review'].astype(str)
+
+# --- Helper function to get top words with TF-IDF ---
+def get_top_tfidf(text_series, n=20):
+    tfidf_vectorizer = TfidfVectorizer(stop_words='english', max_features=5000)
+    X_tfidf = tfidf_vectorizer.fit_transform(text_series)
+
+    # Sum TF-IDF values across documents
+    word_freq = np.asarray(X_tfidf.sum(axis=0)).flatten()
+    words = tfidf_vectorizer.get_feature_names_out()
+    word_freq_dict = dict(zip(words, word_freq))
+
+    # Sort and convert to DataFrame
+    sorted_word_freq = sorted(word_freq_dict.items(), key=lambda x: x[1], reverse=True)
+    data_word_freq = pd.DataFrame(sorted_word_freq, columns=['Word', 'TF-IDF'])
+    return data_word_freq.head(n)
+
+# --- Top 20 words for each group ---
+top_pos = get_top_tfidf(positive_reviews, 20)
+top_neg = get_top_tfidf(negative_reviews, 20)
+
+# --- Plot side by side ---
+fig, axes = plt.subplots(1, 2, figsize=(18, 8))
+
+sns.barplot(x='TF-IDF', y='Word', data=top_pos, ax=axes[0], palette='Greens_r')
+axes[0].set_title("Top 20 Words in Positive Reviews (4–5 stars)")
+axes[0].set_xlabel("TF-IDF Score")
+axes[0].set_ylabel("Word")
+
+sns.barplot(x='TF-IDF', y='Word', data=top_neg, ax=axes[1], palette='Reds_r')
+axes[1].set_title("Top 20 Words in Negative Reviews (1–2 stars)")
+axes[1].set_xlabel("TF-IDF Score")
+axes[1].set_ylabel("")
+
+plt.tight_layout()
+plt.show()
+
+
+word_freq = np.asarray(X_vect.sum(axis=0)).flatten()
+words = vectorizer.get_feature_names_out()
+word_freq_dict = dict(zip(words, word_freq))
+
+# Sort by frequency
+sorted_word_freq = sorted(word_freq_dict.items(), key=lambda x: x[1], reverse=True)
+
+# Convert DataFrame
+df_word_freq = pd.DataFrame(sorted_word_freq, columns=['Word', 'Frequency'])
+
+# Graph the most frequent words
+plt.figure(figsize=(10, 8))
+sns.barplot(x='Frequency', y='Word', data=df_word_freq.head(20))
+plt.title('Most Frequent Words')
+plt.xlabel('Frequency')
+plt.ylabel('Word')
+plt.show()
+
+# Define rating-based labels in numeric format (to match sentiment column)
+# 
+data['rating_label'] = data['rating'].apply(lambda x: 1 if x >= 3 else 0)
+
+# Compare with sentiment column
+confusion = pd.crosstab(
+    data['rating_label'],
+    data['sentiment'],
+    rownames=['Rating-based Label'],
+    colnames=['Predicted Sentiment']
+)
+
+print("Confusion Matrix:")
+print(confusion)
+
+# Percentage of mismatches
+mismatches = data[data['rating_label'] != data['sentiment']]
+print(f"\nTotal mismatches: {len(mismatches)} ({len(mismatches)/len(data)*100:.2f}%)")
+
+# Show sample mismatches
+print("\nSample mismatches:\n")
+for i, row in mismatches.head(5).iterrows():
+    print(f"Date: {row['date']}")
+    print(f"Rating: {row['rating']} (Expected Sentiment={row['rating_label']})")
+    print(f"Predicted Sentiment: {row['sentiment']}")
+    print(f"Review: {row['review']}")
+    print("-"*80)
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(6,5))
+sns.heatmap(confusion, annot=True, fmt='d', cmap="Blues")
+plt.title("Rating vs. Sentiment Confusion Matrix")
+plt.show()
+
+df_word_freq
+
+y_train.value_counts()
+
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+
+
+from sklearn.tree import DecisionTreeClassifier
+dt=DecisionTreeClassifier(class_weight='balanced', random_state=42)
+dt.fit(X_train,y_train)
+y_pred=dt.predict(X_test)
+
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+print(accuracy_score(y_test, y_pred))
+print(classification_report(y_test, y_pred))
+print(confusion_matrix(y_test, y_pred))
+
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+
+# Train-test split
+X_train, X_test, y_train, y_test = train_test_split(
+    X_vect, y, test_size=0.2, stratify=y, random_state=42
+)
+
+from imblearn.over_sampling import SMOTE
+
+smote = SMOTE(random_state=42)
+X_res, y_res = smote.fit_resample(X_train, y_train)
+
+
+# KNN Model
+knn = KNeighborsClassifier(n_neighbors=5, metric='cosine')  # try 'euclidean' or 'cosine'
+knn.fit(X_res, y_res)
+
+# Predictions
+y_pred = knn.predict(X_test)
+
+# Evaluation
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+print("\nConfusion Matrix:\n", confusion_matrix(y_test, y_pred))
+
+from sklearn.ensemble import RandomForestClassifier
+dt=RandomForestClassifier(n_estimators=10)
+dt.fit(x_train_smote,y_train_smote)
+y_pred=dt.predict(X_test)
+
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+print(accuracy_score(y_test, y_pred))
+print(classification_report(y_test, y_pred))
+print(confusion_matrix(y_test, y_pred))
+
+#Support Vector algorithm
+from  sklearn.svm import SVC
+from sklearn.metrics import accuracy_score
+model=SVC(class_weight='balanced',random_state=42)
+model.fit(X_train, y_train)
+
+# Evaluate the model
+y_pred = model.predict(X_test)
+
+print(accuracy_score(y_test, y_pred))
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
+print(confusion_matrix(y_test, y_pred))
+
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from imblearn.over_sampling import SMOTE
+
+
+
+#Step 2: Train-test split
+X_train, X_test, y_train, y_test = train_test_split(
+    X_vect, y, test_size=0.2, random_state=42, stratify=y
+)
+
+#Step 3: Balance data (SMOTE for binary works well)
+smote = SMOTE(random_state=42)
+X_train_bal, y_train_bal = smote.fit_resample(X_train, y_train)
+
+# Step 4: Train Naïve Bayes
+nb = MultinomialNB()
+nb.fit(X_train_bal, y_train_bal)
+
+#Step 5: Predict
+y_pred = nb.predict(X_test)
+
+#Step 6: Evaluate
+print("✅ Accuracy:", accuracy_score(y_test, y_pred))
+print("\n📊 Classification Report:\n", classification_report(y_test, y_pred))
+print("\n🔢 Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
+
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from imblearn.over_sampling import SMOTE
+
+
+
+#Step 2: Train-test split
+X_train, X_test, y_train, y_test = train_test_split(
+    X_vect, y, test_size=0.2, random_state=42, stratify=y
+)
+
+#Step 3: Balance data (SMOTE for binary works well)
+smote = SMOTE(random_state=42)
+X_train_bal, y_train_bal = smote.fit_resample(X_train, y_train)
+
+# Step 4: Train Naïve Bayes
+nb = MultinomialNB()
+nb.fit(X_train_bal, y_train_bal)
+
+#Step 5: Predict
+y_pred = nb.predict(X_test)
+
+#Step 6: Evaluate
+print("✅ Accuracy:", accuracy_score(y_test, y_pred))
+print("\n📊 Classification Report:\n", classification_report(y_test, y_pred))
+print("\n🔢 Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
+
+%pip install xgboost
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from xgboost import XGBClassifier
+
+
+# -------------------------
+# Train-Test Split
+# -------------------------
+X_train, X_test, y_train, y_test = train_test_split(
+    X_vect, y, test_size=0.2, random_state=42, stratify=y
+)
+
+# -------------------------
+# XGBoost Classifier
+# -------------------------
+xgb_model = XGBClassifier(
+    n_estimators=200,      # number of boosting rounds
+    learning_rate=0.1,     # step size shrinkage
+    max_depth=6,           # depth of trees
+    subsample=0.8,         # prevent overfitting
+    colsample_bytree=0.8,  # feature sampling
+    eval_metric='logloss',
+    use_label_encoder=False,
+    random_state=42
+)
+
+# Train
+xgb_model.fit(X_train, y_train)
+
+# Predict
+y_pred = xgb_model.predict(X_test)
+
+# -------------------------
+# Evaluation
+# -------------------------
+print("✅ Accuracy:", accuracy_score(y_test, y_pred))
+print("\n📊 Classification Report:\n", classification_report(y_test, y_pred))
+print("\n🔢 Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
+
+
+import streamlit as st
+import pickle
+import re
+import string
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from wordcloud import WordCloud
+
+# ------------------------------
+# Load model and vectorizer
+# ------------------------------
+model = pickle.load(open(r"C:\Users\Arunamalai\Desktop\LogisticRegression_model_NLP.pkl", "rb"))
+vectorizer = pickle.load(open("vectorizer.pkl", "rb"))
+
+# Load your trained dataset (update with your path)
+data = pd.read_csv(r"C:\Users\Arunamalai\Downloads\chatgpt_reviews (1).csv")
+
+# ------------------------------
+# Text Preprocessing Function
+# ------------------------------
+def preprocess_text(text):
+    text = str(text).lower()
+    text = text.translate(str.maketrans("", "", string.punctuation))
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
+
+# Preprocess dataset
+data['cleaned'] = data['review'].astype(str).apply(preprocess_text)
+data_vect = vectorizer.transform(data['cleaned'])
+data['predicted_sentiment'] = model.predict(data_vect)
+
+# ------------------------------
+# Streamlit UI
+# ------------------------------
+st.title("📊 Sentiment Analysis App")
+st.write("This app predicts whether a review is **Positive 😀 or Negative 😡** and also shows insights from the dataset.")
+
+# ------------------------------
+# MAIN PART: Single Review Prediction
+# ------------------------------
+st.header("🔍 Single Review Prediction")
+user_input = st.text_area("📝 Enter a review:")
+
+if st.button("Predict Sentiment"):
+    if user_input.strip() == "":
+        st.warning("⚠️ Please enter some text.")
+    else:
+        cleaned_text = preprocess_text(user_input)
+        vectorized_text = vectorizer.transform([cleaned_text])
+        prediction = model.predict(vectorized_text)[0]
+        probability = model.predict_proba(vectorized_text)[0]
+
+        if prediction == 1:
+            st.success(f"✅ Positive Review 😀 (Confidence: {probability[1]:.2f})")
+        else:
+            st.error(f"❌ Negative Review 😡 (Confidence: {probability[0]:.2f})")
+
+# ------------------------------
+# EXTRA INSIGHTS FROM TRAINED DATASET
+import streamlit as st
+import pickle
+import re
+import string
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from wordcloud import WordCloud
+from sklearn.feature_extraction.text import CountVectorizer
+
+# ===============================
+# Load Model + Vectorizer
+# ===============================
+model = pickle.load(open(r"C:\Users\Arunamalai\Desktop\LogisticRegression_model_NLP.pkl", "rb"))
+vectorizer = pickle.load(open("vectorizer.pkl", "rb"))
+
+# ===============================
+# Preprocessing Function
+# ===============================
+def preprocess_text(text):
+    text = text.lower()
+    text = text.translate(str.maketrans("", "", string.punctuation))
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
+
+# ===============================
+# Load Dataset
+# ===============================
+data = pd.read_csv(r"C:\Users\Arunamalai\Downloads\chatgpt_reviews (1).csv")   # replace with actual dataset path
+cleaned_reviews = data['review'].apply(preprocess_text)
+
+# Model predictions for dataset
+X_vect = vectorizer.transform(cleaned_reviews)
+data['sentiment'] = model.predict(X_vect)
+
+# ===============================
+# Streamlit Layout
+# ===============================
+st.set_page_config(page_title="Sentiment Analysis App", layout="wide")
+
+st.title("📝 Review Sentiment Analysis")
+st.write("Main feature: Predict whether a review is **Positive 😀** or **Negative 😡**. "
+         "Additional insights (based on model predictions) are in the sidebar.")
+
+# ------------------------------------------------
+# Main Panel: Single Review Prediction
+# ------------------------------------------------
+st.header("🔍 Single Review Prediction")
+user_input = st.text_area("Enter a review:")
+
+if st.button("Predict Sentiment"):
+    if user_input.strip() == "":
+        st.warning("⚠️ Please enter some text.")
+    else:
+        cleaned_text = preprocess_text(user_input)
+        vectorized_text = vectorizer.transform([cleaned_text])
+        prediction = model.predict(vectorized_text)[0]
+        probability = model.predict_proba(vectorized_text)[0]
+
+        if prediction == 1:
+            st.success(f"✅ Positive Review 😀 (Confidence: {probability[1]:.2f})")
+        else:
+            st.error(f"❌ Negative Review 😡 (Confidence: {probability[0]:.2f})")
+
+# ------------------------------------------------
+# Sidebar: Insights from Predictions
+# ------------------------------------------------
+st.sidebar.title("📊 Data Insights (Model Predictions)")
+
+# Sentiment Distribution
+with st.sidebar.expander("Sentiment Distribution"):
+    sent_counts = data['sentiment'].value_counts()
+    fig, ax = plt.subplots()
+    sns.barplot(x=sent_counts.index, y=sent_counts.values, palette="viridis", ax=ax)
+    ax.set_xticklabels(["Negative 😡", "Positive 😀"])
+    ax.set_ylabel("Count")
+    st.pyplot(fig)
+
+# Word Clouds
+with st.sidebar.expander("Word Clouds (Positive vs Negative)"):
+    pos_text = " ".join(data[data['sentiment'] == 1]["review"])
+    neg_text = " ".join(data[data['sentiment'] == 0]["review"])
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10,5))
+    wordcloud_pos = WordCloud(width=400, height=300, background_color="white", colormap="Greens").generate(pos_text)
+    wordcloud_neg = WordCloud(width=400, height=300, background_color="white", colormap="Reds").generate(neg_text)
+
+    ax1.imshow(wordcloud_pos, interpolation="bilinear"); ax1.axis("off"); ax1.set_title("Positive 😀")
+    ax2.imshow(wordcloud_neg, interpolation="bilinear"); ax2.axis("off"); ax2.set_title("Negative 😡")
+    st.pyplot(fig)
+
+# Top 20 Words
+with st.sidebar.expander("Top 20 Words in Positive vs Negative Reviews"):
+    cv = CountVectorizer(max_features=2000, stop_words="english")
+
+    # Positive
+    X_pos = cv.fit_transform(data[data['sentiment']==1]["review"])
+    word_freq_pos = dict(zip(cv.get_feature_names_out(), X_pos.toarray().sum(axis=0)))
+    top_pos = sorted(word_freq_pos.items(), key=lambda x: x[1], reverse=True)[:20]
+    df_pos = pd.DataFrame(top_pos, columns=["Word", "Frequency"])
+
+    # Negative
+    X_neg = cv.fit_transform(data[data['sentiment']==0]["review"])
+    word_freq_neg = dict(zip(cv.get_feature_names_out(), X_neg.toarray().sum(axis=0)))
+    top_neg = sorted(word_freq_neg.items(), key=lambda x: x[1], reverse=True)[:20]
+    df_neg = pd.DataFrame(top_neg, columns=["Word", "Frequency"])
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12,6))
+    sns.barplot(x="Frequency", y="Word", data=df_pos, ax=ax1, palette="Greens")
+    ax1.set_title("Positive 😀")
+    sns.barplot(x="Frequency", y="Word", data=df_neg, ax=ax2, palette="Reds")
+    ax2.set_title("Negative 😡")
+    st.pyplot(fig)
+
+# Helpful Reviews
+# If your dataset already has 'helpful' column, keep it
+# Otherwise, simulate helpfulness with review length
+if "helpful" not in data.columns:
+    data['helpful'] = data['review'].apply(lambda x: len(x.split()))
+
+with st.sidebar.expander("Helpful Reviews Insight"):
+    helpful_threshold = 10  # adjust threshold if needed
+    helpful_data = data['helpful'].apply(lambda x: "👍 Helpful" if x >= helpful_threshold else "👎 Not Helpful").value_counts()
+
+    fig, ax = plt.subplots()
+    ax.pie(
+        helpful_data.values,
+        labels=helpful_data.index,
+        autopct="%1.1f%%",
+        startangle=90,
+        colors=["#90EE90", "#FF9999"]  # green for helpful, red for not helpful
+    )
+    ax.set_title("👍 Helpful vs 👎 Not Helpful Reviews")
+    st.pyplot(fig)
+
+
+# Rating Trend
+if "date" in data.columns and "rating" in data.columns:
+    with st.sidebar.expander("Average Rating Over Time"):
+        data["date"] = pd.to_datetime(data["date"], errors="coerce")
+        rating_trend = data.groupby(pd.Grouper(key="date", freq="M"))["rating"].mean()
+        fig, ax = plt.subplots()
+        rating_trend.plot(kind="line", marker="o", ax=ax)
+        ax.set_ylabel("Average Rating")
+        ax.set_title("Rating Trend Over Time")
+        st.pyplot(fig)
+
+with st.sidebar.expander("📝 Review Length vs Rating"):
+    # Compute review lengths
+    data['review_length'] = data['review'].apply(lambda x: len(x.split()))
+    
+    # Boxplot of review length by rating
+    fig, ax = plt.subplots(figsize=(6,4))
+    sns.boxplot(x="rating", y="review_length", data=data, ax=ax, palette="Set2")
+    ax.set_title("Review Length Distribution by Rating")
+    ax.set_xlabel("Rating")
+    ax.set_ylabel("Review Length (words)")
+    st.pyplot(fig)
+
+    # Optional: show average review length per rating as bar chart
+    avg_len = data.groupby("rating")["review_length"].mean().reset_index()
+    fig2, ax2 = plt.subplots(figsize=(6,4))
+    sns.barplot(x="rating", y="review_length", data=avg_len, ax=ax2, palette="muted")
+    ax2.set_title("Average Review Length by Rating")
+    ax2.set_xlabel("Rating")
+    ax2.set_ylabel("Avg Length (words)")
+    st.pyplot(fig2)
+
+from collections import Counter
+from wordcloud import WordCloud
+from nltk.corpus import stopwords
+
+# Download stopwords if not already (run once outside app)
+# import nltk
+# nltk.download('stopwords')
+
+stop_words = set(stopwords.words("english"))
+
+with st.sidebar.expander("😡 Most Mentioned Words in 1-Star Reviews"):
+    one_star_reviews = data[data['rating'] == 1]["review"].dropna().astype(str)
+
+    if len(one_star_reviews) > 0:
+        # Combine all 1-star reviews
+        words = " ".join(one_star_reviews).lower()
+        words = re.sub(r"[^\w\s]", "", words)  # remove punctuation
+        word_list = [w for w in words.split() if w not in stop_words and len(w) > 2]
+
+        # Count top words
+        common_words = Counter(word_list).most_common(20)
+
+        # --- Bar chart ---
+        common_df = pd.DataFrame(common_words, columns=["Word", "Count"])
+        fig, ax = plt.subplots(figsize=(6,4))
+        sns.barplot(x="Count", y="Word", data=common_df, ax=ax, palette="Reds_r")
+        ax.set_title("Top 20 Words in 1-Star Reviews (after Stopword Removal)")
+        st.pyplot(fig)
+
+        # --- Word Cloud ---
+        wc = WordCloud(width=600, height=400, background_color="white", colormap="Reds").generate_from_frequencies(dict(common_words))
+        fig2, ax2 = plt.subplots(figsize=(6,4))
+        ax2.imshow(wc, interpolation="bilinear")
+        ax2.axis("off")
+        st.pyplot(fig2)
+    else:
+        st.info("No 1-star reviews available in the dataset.")
+
+import numpy as np
+from sklearn.decomposition import LatentDirichletAllocation
+from sklearn.feature_extraction.text import CountVectorizer
+
+with st.sidebar.expander("😡 Negative Feedback Themes (Topic Modeling)"):
+    # Filter negative reviews (rating <= 2, or sentiment==0)
+    negative_reviews = data[data['rating'] <= 2]["review"].dropna().astype(str)
+
+    if len(negative_reviews) > 0:
+        # Preprocess
+        neg_processed = negative_reviews.apply(preprocess_text)
+
+        # Count vectorizer (bag of words, not TF-IDF, for LDA)
+        count_vec = CountVectorizer(max_df=0.9, min_df=5, stop_words="english")
+        X_counts = count_vec.fit_transform(neg_processed)
+
+        # LDA model
+        lda = LatentDirichletAllocation(n_components=3, random_state=42)  # 3 topics
+        lda.fit(X_counts)
+
+        vocab = np.array(count_vec.get_feature_names_out())
+
+        # Display top words per topic
+        for i, topic in enumerate(lda.components_):
+            top_words = vocab[topic.argsort()[-10:]]
+            st.write(f"**Theme {i+1}:**", ", ".join(top_words))
+
+    else:
+        st.info("No negative reviews available in the dataset.")
+
+with st.sidebar.expander("⚖ Rating vs Sentiment Mismatch"):
+    # Create rating-based label (1 = Positive, 0 = Negative)
+    data['rating_label'] = data['rating'].apply(lambda x: 1 if x >= 3 else 0)
+
+    # Confusion matrix
+    confusion = pd.crosstab(
+        data['rating_label'],
+        data['sentiment'],
+        rownames=['Rating-based Label'],
+        colnames=['Predicted Sentiment']
+    )
+
+    # Plot heatmap
+    fig, ax = plt.subplots(figsize=(4, 3))
+    sns.heatmap(confusion, annot=True, fmt="d", cmap="Blues", ax=ax)
+    ax.set_title("Rating vs Sentiment Confusion Matrix")
+    st.pyplot(fig)
+
+    # Percentage mismatches
+    mismatches = data[data['rating_label'] != data['sentiment']]
+    mismatch_pct = len(mismatches) / len(data) * 100
+    st.write(f"**Total mismatches:** {len(mismatches)} ({mismatch_pct:.2f}%)")
+
+    # Show a few mismatched examples
+    st.markdown("**🔍 Sample mismatches:**")
+    for i, row in mismatches.head(3).iterrows():
+        st.write(f"- 📅 {row['date']} | ⭐ {row['rating']} (Expected={row['rating_label']}, Predicted={row['sentiment']})")
+        st.write(f"  ✍ {row['review'][:150]}...")
+
